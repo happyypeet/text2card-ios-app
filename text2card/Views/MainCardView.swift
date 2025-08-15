@@ -10,6 +10,7 @@ import MarkdownUI
 
 struct MainCardView: View {
     @EnvironmentObject var cardViewModel: CardViewModel
+    @EnvironmentObject var themeViewModel: ThemeViewModel
     @State private var inputText = ""
     @State private var selectedTemplate = CardTemplate.templates[0]
     @State private var showingTemplateSelector = false
@@ -21,6 +22,9 @@ struct MainCardView: View {
     // 从 UserDefaults 读取设置
     @AppStorage("defaultTemplate") private var defaultTemplateIndex = 0
     @AppStorage("enableMarkdown") private var enableMarkdown = true
+    
+    // 主题选择相关
+    @State private var selectedTheme: Theme?
     
     var body: some View {
         GeometryReader { geometry in
@@ -219,17 +223,35 @@ struct MainCardView: View {
             }
             isMarkdown = enableMarkdown
         }
+        .onReceive(NotificationCenter.default.publisher(for: Notification.Name("ApplyTheme"))) { notification in
+            if let theme = notification.userInfo?["theme"] as? Theme {
+                applyTheme(theme)
+            }
+        }
     }
     
     private func generateCard() {
-        let newCard = Card(
-            text: inputText,
-            backgroundColor: selectedTemplate.backgroundColor,
-            textColor: selectedTemplate.textColor,
-            font: selectedTemplate.font,
-            fontSize: selectedTemplate.fontSize,
-            isMarkdown: isMarkdown
-        )
+        let newCard: Card
+        
+        if let theme = selectedTheme {
+            newCard = Card(
+                text: inputText,
+                backgroundColor: theme.backgroundColor.color,
+                textColor: theme.textColor.color,
+                font: theme.font,
+                fontSize: theme.fontSize,
+                isMarkdown: isMarkdown
+            )
+        } else {
+            newCard = Card(
+                text: inputText,
+                backgroundColor: selectedTemplate.backgroundColor,
+                textColor: selectedTemplate.textColor,
+                font: selectedTemplate.font,
+                fontSize: selectedTemplate.fontSize,
+                isMarkdown: isMarkdown
+            )
+        }
         
         cardViewModel.addCard(newCard)
         generatedCard = newCard
@@ -237,6 +259,11 @@ struct MainCardView: View {
         
         // 清空输入
         inputText = ""
+    }
+    
+    private func applyTheme(_ theme: Theme) {
+        selectedTheme = theme
+        selectedTemplate = theme.toCardTemplate()
     }
 }
 
@@ -479,4 +506,5 @@ struct ShareSheet: UIViewControllerRepresentable {
 #Preview {
     MainCardView()
         .environmentObject(CardViewModel())
+        .environmentObject(ThemeViewModel())
 }

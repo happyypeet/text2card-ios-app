@@ -15,8 +15,8 @@ struct text2cardApp: App {
     
     var body: some Scene {
         WindowGroup {
-            // 简化为单一主界面，专注文字转卡片功能
-            MainCardView()
+            // 使用 ContentView 作为主容器，包含 Tab 切换
+            ContentView()
                 .environmentObject(cardViewModel)
         }
     }
