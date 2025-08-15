@@ -6,12 +6,18 @@
 //
 
 import SwiftUI
+import MarkdownUI
 
 @main
 struct text2cardApp: App {
+    // 创建卡片视图模型作为环境对象
+    @StateObject private var cardViewModel = CardViewModel()
+    
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            // 简化为单一主界面，专注文字转卡片功能
+            MainCardView()
+                .environmentObject(cardViewModel)
         }
     }
 }
